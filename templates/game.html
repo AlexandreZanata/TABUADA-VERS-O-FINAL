@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Arena</title>
+    <style>
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+            background-color: rgb(255, 253, 253);
+            max-height: 100vh;
+        }
+        #scoreboard {
+            width: 30%;
+            margin-right: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 600px;
+            overflow-y: scroll;
+        }
+        #game {
+            width: 72%;
+            background-color: rgb(102, 3, 168);
+            padding: 20px;
+            color: white;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        input, textarea, button {
+            padding: 10px;
+            margin: 25px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 40px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 80%;
+            margin-top: -20px;
+        }
+        textarea {
+            height: 100px;
+            resize: none;
+            font-size: 85px;
+            text-align: center;
+            font-weight: bolder;
+        }
+        button {
+            width: 82.5%;
+            background-color: #23f157;
+            color: black;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.5s ease;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #f3d320;
+        }
+        .titulo {
+            font-size: 80px;
+            font-weight: bold;
+            margin-top: 0%;
+        }
+        .player-score {
+            font-size: 24px;
+            color: #000000;
+            margin: 30px 0;
+            margin-top: -30px; 
+            font-weight: bolder;
+            font-family: 'Times New Roman', Times, serif; 
+        }
+
+        .first-place {
+            color: gold;
+            font-weight: bolder;
+            font-family: 'Times New Roman', Times, serif;         
+        }
+
+        .second-place {
+            color: silver;
+            font-weight: bolder;
+            font-family: 'Times New Roman', Times, serif; 
+        }
+
+        .third-place {
+            color: #B47539;
+            font-weight: bolder;
+            font-family: 'Times New Roman', Times, serif; 
+        }
+        .tituloscore {
+            font-size: 50px;
+            margin-top: 0%;
+            color: rgb(0, 0, 0);
+        }
+
+        @keyframes rainbow {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+
+        .rainbow-text {
+          background: linear-gradient(270deg, red, orange, yellow, rgb(252, 228, 11), rgb(29, 204, 248), rgb(255, 57, 229), rgb(238, 218, 130));
+          background-size: 400% 400%;
+          -webkit-background-clip: text;
+          color: transparent;
+          animation: rainbow 30s ease infinite;
+        }
+    </style>
+</head>
+<body>
+    <div id="scoreboard">
+        <h2 class="tituloscore">Ranking</h2>
+        <ul id="score-list">
+        </ul>
+    </div>
+    <div id="game">
+        <h1 class="titulo rainbow-text">Game Arena</h1>
+        <form id="score-form">
+            <input type="text" id="player" name="player" placeholder="Nome do jogador" required autocomplete="off">
+            <textarea id="equation" name="equation" readonly rows="5" cols="25"></textarea>
+            <input type="number" id="answer" name="answer" placeholder="Sua resposta" required>
+            <button type="submit">ENVIAR RESPOSTA</button>
+            <input type="hidden" id="room_code" name="room_code" value="{{ room_code }}">
+        </form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <script>
+        const playerScores = {};
+        const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+
+        const roomCode = "{{ room_code }}";
+        socket.emit('join', { room_code: roomCode });
+
+        const pairs = [];
+        for (let i = 1; i <= 10; i++) {
+            for (let j = 1; j <= 10; j++) {
+                pairs.push([i, j]);
+            }
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        shuffle(pairs);
+
+        let currentPairIndex = 0;
+
+        function generateNextEquation() {
+            if (currentPairIndex >= pairs.length) {
+                currentPairIndex = 0;
+                shuffle(pairs);
+            }
+            const [multiplier, multiplicand] = pairs[currentPairIndex];
+            currentPairIndex++;
+            return `${multiplier} x ${multiplicand}`;
+        }
+
+        function calculateEquation(equation) {
+            try {
+                const validEquation = equation.replace(/x/g, '*');
+                return eval(validEquation);
+            } catch {
+                return null;
+            }
+        }
+
+        function updateScoreboard(scores) {
+            const scoreList = document.getElementById('score-list');
+            scoreList.innerHTML = '';
+            scores.sort((a, b) => b[1] - a[1]);
+            scores.forEach((score, index) => {
+                const li = document.createElement('li');
+                li.textContent = `${score[0]}: ${score[1]}`;
+                li.classList.add('player-score');
+                if (index === 0) li.classList.add('first-place');
+                else if (index === 1) li.classList.add('second-place');
+                else if (index === 2) li.classList.add('third-place');
+                scoreList.appendChild(li);
+            });
+        }
+
+        socket.on('update_scores', function(data) {
+            updateScoreboard(data.high_scores);
+        });
+
+        document.getElementById('score-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const player = document.getElementById('player').value;
+            const answer = parseFloat(document.getElementById('answer').value);
+            const equation = document.getElementById('equation').value;
+            const correctAnswer = calculateEquation(equation);
+
+            if (answer === correctAnswer) {
+                if (!playerScores[player]) {
+                    playerScores[player] = 0;
+                }
+                playerScores[player] += 1;
+
+                fetch('/save_score', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `player=${player}&score=${playerScores[player]}&room_code=${roomCode}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('answer').value = '';
+                    document.getElementById('equation').value = generateNextEquation();
+                });
+            } else {
+                alert('RESPOSTA ERRADA RESPONDA OUTRA VEZ.');
+            }
+        });
+
+        document.getElementById('equation').value = generateNextEquation();
+    </script>
+</body>
+</html>

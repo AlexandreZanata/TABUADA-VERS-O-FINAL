@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Arena Login</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #6603A8;
+            margin: 0;
+        }
+        #join-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 38px; /* Aumentar o preenchimento interno */
+            background-color: rgb(0, 0, 0);
+            border-radius: 10px; /* Tornar os cantos mais arredondados */
+            width: 60%; /* Definir largura maior */
+            max-width: 750px; /* Definir largura máxima */
+        }
+        input {
+            padding: 15px; /* Aumentar o preenchimento dos campos */
+            margin: 15px 0; /* Aumentar a margem entre os campos */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 45px; /* Aumentar o tamanho da fonte */
+            width: 100%; /* Fazer com que os campos preencham a largura do formulário */
+            text-align: center;
+            color: black;
+            font-weight: bolder;
+        }
+        button {
+            background-color: #23f157;
+            color: black;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.5s ease;
+            font-weight: bolder;
+            padding: 15px; /* Aumentar o preenchimento dos campos */
+            margin: 15px 0; /* Aumentar a margem entre os campos */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 45px; /* Aumentar o tamanho da fonte */
+            width: 104.5%; /* Fazer com que os campos preencham a largura do formulário */
+            margin-top: 0%;
+        }
+        button:hover {
+            background-color: #f3d320;
+        }
+        h2 {
+        font-size: 110px;
+        }
+        @keyframes rainbow {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+
+        .rainbow-text {
+          background: linear-gradient(270deg, red, orange, yellow, rgb(252, 228, 11), rgb(29, 204, 248), rgb(255, 57, 229), rgb(238, 218, 130));
+          background-size: 400% 400%;
+          -webkit-background-clip: text;
+          color: transparent;
+          animation: rainbow 30s ease infinite;
+        }
+    </style>
+</head>
+<body>
+    <form id="join-form" action="/join" method="POST">
+        <h2 class="titulo rainbow-text">GAME ARENA</h2>
+        <input type="text" id="room_code" name="room_code" placeholder="Código da Sala" required autocomplete="off">
+        <button type="submit">Login
+</body>
+</html>
